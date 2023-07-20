@@ -1,0 +1,39 @@
+Current status
+budget plan form validation (DONE)
+budget plan save data
+budget plan show inserted data
+
+
+Home page
+    - center block
+        - current month
+        - income total
+        - expenses total
+        - important activities
+    - list current month till date transactions
+    - list current month till date income & expenses
+Budget Planner page
+    - enter all the details
+    - ability to insert new record fields
+    - table preview of the entered records
+Transaction page
+    - add transaction
+    - edit transaction
+    - delete transaction
+Reports page
+    - comparison report
+        - existing budget plan & real transactions
+    - monthly expenses report
+    - weekly expenses report
+
+-------
+routes
+-------
+/ - home page
+/budget - Budget planning page
+/transactions - Transactions page
+/transactions/add - Add new transaction
+/transactions/edit - Edit transaction
+/reports - Reports page
+/reports/monthly - Monthly reports page
+/reports/weekly - Weekly reports page
