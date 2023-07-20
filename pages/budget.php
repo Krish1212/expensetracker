@@ -9,6 +9,22 @@ include ROOT_PATH . '/handlers/dbHandler.php';
 $dbHandler = new DatabaseHandler();
 // get the list of categories first
 $category_items = $dbHandler->readData('category_table');
+// get the list of budget records for the current month
+// column constraints are month = current month
+// expected columns are all columns
+$matchColumns = array('month' => date("F"));
+$currentMonth = date("F");
+$combinedQuery = "SELECT category_table.name, description, amount FROM budget_planner INNER JOIN category_table ON budget_planner.category=category_table.id WHERE budget_planner.month=\"" . $currentMonth . "\";";
+$resultDataSet = $dbHandler->query($combinedQuery);
+$budget_records = array();
+while ($row = mysqli_fetch_assoc($resultDataSet)) {
+    $budget_records[] = $row;
+}
+
+if (count($budget_records) == 0) {
+    $budget_records = 'There are no items to display, start adding records now.';
+}
+
 $dbHandler->closeDB();
 ?>
 
@@ -52,43 +68,37 @@ $dbHandler->closeDB();
                         </div>
                     </div>
                     <div class="col-lg-2">
-                        <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('d-m-Y') ?>" data-bs-month="<?php echo date('F') ?>" data-bs-year="<?php echo date('Y') ?>">Submit</button>
+                        <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('Y-m-d') ?>" data-bs-month="<?php echo date('F') ?>" data-bs-year="<?php echo date('Y') ?>">Submit</button>
                     </div>
                 </form>
             </div>
             <!-- BUDGET PLANNER FORM ENDS HERE -->
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Date</th>
-                            <th scope="col">Month</th>
-                            <th scope="col">Category</th>
-                            <th scope="col">Amount</th>
-                            <th scope="col">Description</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                        <tr>
-                            <th>1</th>
-                            <td>2023/07/10</td>
-                            <td>July</td>
-                            <td>Recharge</td>
-                            <td>181</td>
-                            <td>jio mobile</td>
-                        </tr>
-                        <tr>
-                            <th>2</th>
-                            <td>2023/07/11</td>
-                            <td>July</td>
-                            <td>Groceries</td>
-                            <td>450</td>
-                            <td>to GSM</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <?php if (is_array($budget_records)): ?>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Category</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            <?php for($i = 0; $i < count($budget_records); $i++) { ?>
+                                <tr>
+                                    <th><?php echo ($i + 1);?></th>
+                                    <td><?php echo $budget_records[$i]['name']; ?></td>
+                                    <td><?php echo $budget_records[$i]['description']; ?></td>
+                                    <td><?php echo $budget_records[$i]['amount']; ?></td>
+                                </tr>
+                            <?php }?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else : ?>
+                <div class="fs-5 text-capitalize text-nowrap border text-md-center"><?php echo $budget_records; ?></div>
+            <?php endif;?>
         </div>
     </section>
 </body>

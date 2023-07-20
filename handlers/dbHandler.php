@@ -25,6 +25,7 @@ class DatabaseHandler {
     public function query($sql)
     {
         $result = mysqli_query($this->conn, $sql);
+        
         if (!$result)
         {
             echo "Error: Unable to execute query " . mysqli_error($this->conn);

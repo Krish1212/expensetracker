@@ -16,12 +16,6 @@ $(document).ready(function() {
     // budget plan form validation
     // budget plan form submit
     $('#budgetPlanForm').submit(function(ev) {
-        console.log('i am here');
-        console.log($(this).checkValidity());
-        if (! $(this).checkValidity()) {
-            alert('not valid');
-            return;
-        }
         ev.preventDefault();
         ev.stopPropagation();
         $(this).addClass('was-validated');
@@ -39,7 +33,7 @@ $(document).ready(function() {
         if (category === 'Choose...') {
             alert('Select any valid category!');
             return;
-        }/*
+        }
         request = $.ajax({
             url: 'controller/savebudgetentry.php',
             type: 'post',
@@ -57,10 +51,12 @@ $(document).ready(function() {
 
         request.done(function(response, textStatus, jqXHR) {
             console.log(response, textStatus);
+            // alert(response);
+            window.location.reload();
         });
         request.fail(function(jqXHR, textStatus, error) {
             console.error("Error: ", textStatus, error);
-        })
-        */
+            // alert('Error: ', textStatus, error);
+        });
     });
 });
