@@ -7,23 +7,71 @@ require_once(ROOT_PATH . '/pages/includes/header.html');
 
 include ROOT_PATH . '/handlers/dbHandler.php';
 $dbHandler = new DatabaseHandler();
+
+// get the value of the selected type
+$budgetPlanType = $_GET['type'];
+
 // get the list of categories first
-$category_items = $dbHandler->readData('category_table');
+$category_income = array();
+$category_expenses = array();
+$category_items = array();
+$dataSetRows = $dbHandler->readData('category_table');
+
+foreach ($dataSetRows as $item) {
+    $category_type = $item['type'];
+    if ($category_type == 'income') {
+        $incomeItem = array();
+        $incomeItem['id'] = $item['id'];
+        $incomeItem['name'] = $item['name'];
+        $category_income[] = $incomeItem;
+    } else {
+        $expenseItem = array();
+        $expenseItem['id'] = $item['id'];
+        $expenseItem['name'] = $item['name'];
+        $category_expenses[] = $expenseItem;
+    }
+}
+if (isset($budgetPlanType) && $budgetPlanType == 'income') {
+    $category_items = $category_income;
+} else {
+    $category_items = $category_expenses;
+}
+
 // get the list of budget records for the current month
 // column constraints are month = current month
 // expected columns are all columns
 $matchColumns = array('month' => date("F"));
 $currentMonth = date("F");
-$combinedQuery = "SELECT category_table.name, description, amount FROM budget_planner INNER JOIN category_table ON budget_planner.category=category_table.id WHERE budget_planner.month=\"" . $currentMonth . "\";";
+$combinedQuery = "SELECT category_table.name, category_table.type, description, amount FROM budget_planner INNER JOIN category_table ON budget_planner.category=category_table.id WHERE budget_planner.month=\"" . $currentMonth . "\";";
 $resultDataSet = $dbHandler->query($combinedQuery);
-$budget_records = array();
+$budget_income_items = array();
+$budget_expense_items = array();
 while ($row = mysqli_fetch_assoc($resultDataSet)) {
-    $budget_records[] = $row;
+    if ($row['type'] == 'income') {
+        $budget_income_items[] = $row;
+    } else {
+        $budget_expense_items[] = $row;
+    }
 }
+// print_r($budget_income_items);
 
-if (count($budget_records) == 0) {
+if (count($budget_expense_items) == 0) {
     $budget_records = 'There are no items to display, start adding records now.';
 }
+function addNumberColumn($inputArray) {
+    if (! is_array($inputArray))
+    {
+        return;
+    }
+    $totalValue = 0;
+    for($i = 0; $i < count($inputArray); $i++)
+    {
+        $totalValue += $inputArray[$i]['amount'];
+    }
+    return $totalValue;
+}
+$incomeTotal = addNumberColumn($budget_income_items);
+$expensesTotal = addNumberColumn($budget_expense_items);
 
 $dbHandler->closeDB();
 ?>
@@ -43,37 +91,68 @@ $dbHandler->closeDB();
                     <h4 class="col-lg-8">Plan for the month: <?php echo date('F') ?> <?php echo date('Y') ?></h4>
                     <h5 class="col-lg-4 align-text-right">Date: <?php echo date('d-m-Y') ?></h5>
                 </div>
-                <form class="row d-flex g-3 xalign-items-center xjustify-content-center needs-validation" id="budgetPlanForm" action="" method="post" novalidate>
-                    <div class="col-lg-4">
-                        <div class="input-group">
-                            <div class="input-group-text" for="budgetPlanFormCategory">Category</div>
-                            <select class="form-select form-control" name="budgetPlanFormCategory" id="budgetPlanFormCategory" required>
-                                <option selected>Choose...</option>
-                                <?php for ($c = 0; $c < count($category_items); $c++) { ?>
-                                    <?php echo '<option value="' . $category_items[$c]['id'] . '">' . $category_items[$c]['name'] . '</option>' ?>
-                                <?php } ?>
-                            </select>
+                <form class="needs-validation" id="budgetPlanForm" action="" method="post" novalidate>
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <div class="input-group">
+                                <div class="input-group-text" for="budgetPlanFormType">Type</div>
+                                <select class="form-select form-control" name="budgetPlanFormType" id="budgetPlanFormType" required id="budgetPlanFormType" onchange="location.href='?type=' + this.options[this.selectedIndex].value">
+                                    <option <?php if (isset($budgetPlanType) && $budgetPlanType == 'expenses') {
+                                                echo 'selected';
+                                            } ?> value="expenses">Expenses</option>
+                                    <option <?php if (isset($budgetPlanType) && $budgetPlanType == 'income') {
+                                                echo 'selected';
+                                            } ?> value="income">Income</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="input-group">
+                                <div class="input-group-text" for="budgetPlanFormCategory">Category</div>
+                                <select class="form-select form-control" name="budgetPlanFormCategory" id="budgetPlanFormCategory" required>
+                                    <option selected>Choose...</option>
+                                    <?php for ($c = 0; $c < count($category_items); $c++) { ?>
+                                        <?php echo '<option value="' . $category_items[$c]['id'] . '">' . $category_items[$c]['name'] . '</option>' ?>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="input-group">
+                                <div class="input-group-text">Description</div>
+                                <input type="text" class="form-control" id="budgetPlanFormDesc" required autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="input-group">
+                                <div class="input-group-text">Amount</div>
+                                <input type="number" class="form-control" id="budgetPlanFormAmt" required autocomplete="off">
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg-4">
-                        <div class="input-group">
-                            <div class="input-group-text">Description</div>
-                            <input type="text" class="form-control" id="budgetPlanFormDesc" required autocomplete="off">
+                    <div class="row mt-3 justify-content-center">
+                        <div class="d-grid col-lg-6">
+                            <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('Y-m-d') ?>" data-bs-month="<?php echo date('F') ?>" data-bs-year="<?php echo date('Y') ?>">Submit</button>
                         </div>
-                    </div>
-                    <div class="col-lg-2">
-                        <div class="input-group">
-                            <div class="input-group-text">Amount</div>
-                            <input type="number" class="form-control" id="budgetPlanFormAmt" required autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="col-lg-2">
-                        <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('Y-m-d') ?>" data-bs-month="<?php echo date('F') ?>" data-bs-year="<?php echo date('Y') ?>">Submit</button>
                     </div>
                 </form>
             </div>
             <!-- BUDGET PLANNER FORM ENDS HERE -->
-            <?php if (is_array($budget_records)): ?>
+            <!-- BUDGET INCOME TABULAR STARTS HERE -->
+            <?php if (is_array($budget_income_items)) : ?>
+                <div class="container text-center text-bg-success p-3 mb-3" style="--bs-bg-opacity:0.75;">
+                    <div class="row row-cols-5">
+                        <div class="col">Salary <br>₹<?php echo $budget_income_items[0]['amount']?></div>
+                        <div class="col">Bank Interest <br>₹</div>
+                        <div class="col">Broadband <br>Reimbursement <br>₹<?php echo $budget_income_items[1]['amount']?></div>
+                        <div class="col">Dividend <br>₹</div>
+                        <div class="col">Total <br>₹<?php echo $incomeTotal ?></div>
+                    </div>
+                </div>
+            <?php endif; ?>
+            <!-- BUDGET INCOME TABULAR ENDS HERE -->
+            <!-- BUDGET EXPENSES TABULAR STARTS HERE -->
+            <?php if (is_array($budget_expense_items)) : ?>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-hover">
                         <thead>
@@ -85,20 +164,27 @@ $dbHandler->closeDB();
                             </tr>
                         </thead>
                         <tbody class="table-group-divider">
-                            <?php for($i = 0; $i < count($budget_records); $i++) { ?>
+                            <?php for ($i = 0; $i < count($budget_expense_items); $i++) { ?>
                                 <tr>
-                                    <th><?php echo ($i + 1);?></th>
-                                    <td><?php echo $budget_records[$i]['name']; ?></td>
-                                    <td><?php echo $budget_records[$i]['description']; ?></td>
-                                    <td><?php echo $budget_records[$i]['amount']; ?></td>
+                                    <th><?php echo ($i + 1); ?></th>
+                                    <td><?php echo $budget_expense_items[$i]['name']; ?></td>
+                                    <td><?php echo $budget_expense_items[$i]['description']; ?></td>
+                                    <td>₹<?php echo $budget_expense_items[$i]['amount']; ?></td>
                                 </tr>
-                            <?php }?>
+                            <?php } ?>
                         </tbody>
+                        <tfoot class="table-group-divider">
+                            <tr>
+                                <th colspan="3">Total</th>
+                                <th>₹<?php echo $expensesTotal ?></th>
+                            </tr>
+                        </tfoot>
                     </table>
+                    <!-- BUDGET EXPENSES TABULAR STARTS HERE -->
                 </div>
             <?php else : ?>
-                <div class="fs-5 text-capitalize text-nowrap border text-md-center"><?php echo $budget_records; ?></div>
-            <?php endif;?>
+                <div class="fs-5 text-capitalize text-nowrap border text-md-center"><?php echo $budget_expense_items; ?></div>
+            <?php endif; ?>
         </div>
     </section>
 </body>

@@ -26,6 +26,7 @@ $(document).ready(function() {
         var month = $('#budgetPlanFormSubmit').attr('data-bs-month');
         var year = $('#budgetPlanFormSubmit').attr('data-bs-year');
         var category = $('#budgetPlanFormCategory option').filter(':selected').val();
+        var type = $('#budgetPlanFormType option').filter(':selected').val();
         var description = $('#budgetPlanFormDesc').val();
         var amount = $('#budgetPlanFormAmt').val();
         // console.log(date, month, year, category, description, amount);
@@ -42,6 +43,7 @@ $(document).ready(function() {
                     date: date,
                     month: month,
                     year: year,
+                    type: type,
                     category: category,
                     description: description,
                     amount: amount,
