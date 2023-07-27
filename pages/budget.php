@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
 <?php
 define("ROOT_PATH", $_SERVER["DOCUMENT_ROOT"]);
 require_once(ROOT_PATH . '/pages/includes/header.html');
@@ -8,22 +5,15 @@ require_once(ROOT_PATH . '/pages/includes/header.html');
 include ROOT_PATH . '/handlers/dbHandler.php';
 $dbHandler = new DatabaseHandler();
 
+//get the value of the selected year
+$budgetPlanYear = $params['year'];
 // get the value of the selected month
-$budgetPlanMonth = $_GET['month'];
+$budgetPlanMonth = $params['month'];
 // get the value of the selected type
-$budgetPlanType = $_GET['type'];
+$budgetPlanType = $params['type'];
 
 $monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-// build the selectMonth dropdown element
-/* for(let i = 1; i <= months.length ; i++) {
-    var optionEl = $('<option>');
-    optionEl.attr('value', i);
-    optionEl.html(months[i - 1]);
-    const d = new Date();
-    // console.log(months[d.getMonth()]);
-    // if (d.getMonth() == i) optionEl.attr('selected', 'selected');
-    $('#selectMonth').append(optionEl);
-} */
+$yearsList = ["2021", "2022", "2023"];
 // get the list of categories first
 $category_income = array();
 $category_expenses = array();
@@ -31,30 +21,23 @@ $category_items = array();
 $expenseAmounts = array();
 $dataSetRows = $dbHandler->readData('category_table');
 
-foreach ($dataSetRows as $item)
-{
+foreach ($dataSetRows as $item) {
     $category_type = $item['type'];
-    if ($category_type == 'income')
-    {
+    if ($category_type == 'income') {
         $incomeItem = array();
         $incomeItem['id'] = $item['id'];
         $incomeItem['name'] = $item['name'];
         $category_income[] = $incomeItem;
-    }
-    else
-    {
+    } else {
         $expenseItem = array();
         $expenseItem['id'] = $item['id'];
         $expenseItem['name'] = $item['name'];
         $category_expenses[] = $expenseItem;
     }
 }
-if (isset($budgetPlanType) && $budgetPlanType == 'income')
-{
+if (isset($budgetPlanType) && $budgetPlanType == 'income') {
     $category_items = $category_income;
-}
-else
-{
+} else {
     $category_items = $category_expenses;
 }
 
@@ -62,37 +45,31 @@ else
 // column constraints are month = current month
 // expected columns are all columns
 $matchColumns = array('month' => date("F"));
+$currentYear = (isset($budgetPlanYear)) ? $budgetPlanYear : date("Y");
 $currentMonth = (isset($budgetPlanMonth)) ? $budgetPlanMonth : date("F");
-$combinedQuery = "SELECT category_table.name, category_table.type, description, amount FROM budget_planner INNER JOIN category_table ON budget_planner.category=category_table.id WHERE budget_planner.month=\"" . $currentMonth . "\";";
+$combinedQuery = "SELECT category_table.name, category_table.type, description, amount FROM budget_planner INNER JOIN category_table ON budget_planner.category=category_table.id WHERE budget_planner.month=\"" . $currentMonth . "\" AND budget_planner.year=\"" . $currentYear . "\";";
 $resultDataSet = $dbHandler->query($combinedQuery);
 $budget_income_items = array();
 $budget_expense_items = array();
-while ($row = mysqli_fetch_assoc($resultDataSet))
-{
-    if ($row['type'] == 'income')
-    {
+while ($row = mysqli_fetch_assoc($resultDataSet)) {
+    if ($row['type'] == 'income') {
         $budget_income_items[] = $row;
-    }
-    else
-    {
+    } else {
         $budget_expense_items[] = $row;
         $expenseAmounts[] = $row['amount'];
     }
 }
 
-if (count($budget_expense_items) == 0)
-{
+if (count($budget_expense_items) == 0) {
     $budget_records = 'There are no items to display, start adding records now.';
 }
 function addNumberColumn($inputArray)
 {
-    if (!is_array($inputArray))
-    {
+    if (!is_array($inputArray)) {
         return;
     }
     $totalValue = 0;
-    for ($i = 0; $i < count($inputArray); $i++)
-    {
+    for ($i = 0; $i < count($inputArray); $i++) {
         $totalValue += $inputArray[$i]['amount'];
     }
     return $totalValue;
@@ -103,77 +80,91 @@ $expensesTotal = addNumberColumn($budget_expense_items);
 $dbHandler->closeDB();
 
 ?>
+<!DOCTYPE html>
+<html lang="en">
 
 <body>
     <section>
         <div class="container py-4">
             <header class="pb-3 mb-4 border-bottom">
                 <a href="/" class="d-flex align-items-center text-body-emphasis text-decoration-none">
-                    <img src="./static/images/expense_tracker.png" alt="brand logo" width="32px" height="32px" style="margin-right: 6px !important" />
+                    <img src="/static/images/expense_tracker.png" alt="brand logo" width="32px" height="32px" style="margin-right: 6px !important" />
                     <span class="fs-4">Expense Tracker - Budget Planner</span>
                 </a>
             </header>
             <!-- BUDGET PLANNER FORM COMES HERE -->
             <div class="budget-form bg-warning mb-4" style="--bs-bg-opacity:0.75;">
-                <div class="row align-item-start mb-3">
-                    <div class="input-group col-lg-6 align-text-left">
-                        <label for="selectMonth">Plan for the month:</label>
-                        <select class="form-select form-select-sm" name="selectMonth" id="selectMonth" onchange="location.href='?month=' + this.options[this.selectedIndex].text">
-                            <?php for($i = 1; $i <= count($monthsList); $i++) {?>
-                                <option <?php if ($currentMonth == $monthsList[$i - 1]) echo 'selected'?> value="<?php echo $i ?>"><?php echo $monthsList[$i - 1]?></option>
-                            <?php }?>
-                        </select>
-                        <label><?php echo date('Y') ?></label>
+                <div class="row align-items-center justify-content-center mb-3">
+                    <div class="col-lg-2 align-text-left">
+                        <div class="input-group mb-3">
+                            <label class="input-group-text" for="selectYear">Year</label>
+                            <select class="form-select form-select-sm" id="selectYear" onchange="location.href = '/budget/' + this.options[this.selectedIndex].text + '/<?php echo $currentMonth; ?>'">
+                                <?php for ($i = 1; $i <= count($yearsList); $i++) { ?>
+                                    <option <?php if ($currentYear == $yearsList[$i - 1]) echo 'selected' ?> value="<?php echo $i ?>"><?php echo $yearsList[$i - 1] ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-lg-6">
-                        <h5 class="align-text-right">Date: <?php echo date('d-m-Y') ?></h5>
+                    <div class="col-lg-2">
+                        <div class="input-group mb-3">
+                            <label class="input-group-text" for="selectMonth">Month</label>
+                            <select class="form-select form-select-sm" id="selectMonth" onchange="location.href = '/budget/<?php echo $currentYear; ?>/' + this.options[this.selectedIndex].text">
+                                <?php for ($i = 1; $i <= count($monthsList); $i++) { ?>
+                                    <option <?php if ($currentMonth == $monthsList[$i - 1]) echo 'selected' ?> value="<?php echo $i ?>"><?php echo $monthsList[$i - 1] ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
                     </div>
+                    <div class="col-lg-3">
+                        <h5>Date: <?php echo date('d-m-Y') ?></h5>
+                    </div>
+
+                    <form class="needs-validation" id="budgetPlanForm" action="" method="post" novalidate>
+                        <div class="row">
+                            <div class="col-lg-2">
+                                <div class="input-group">
+                                    <div class="input-group-text" for="budgetPlanFormType">Type</div>
+                                    <select class="form-select form-control" name="budgetPlanFormType" id="budgetPlanFormType" required id="budgetPlanFormType" onchange="location.href = '/budget/<?php echo $currentYear; ?>/<?php echo $currentMonth; ?>/' + this.options[this.selectedIndex].value">
+                                        <option <?php if (isset($budgetPlanType) && $budgetPlanType == 'expenses') {
+                                                    echo 'selected';
+                                                } ?> value="expenses">Expenses</option>
+                                        <option <?php if (isset($budgetPlanType) && $budgetPlanType == 'income') {
+                                                    echo 'selected';
+                                                } ?> value="income">Income</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="input-group">
+                                    <div class="input-group-text" for="budgetPlanFormCategory">Category</div>
+                                    <select class="form-select form-control" name="budgetPlanFormCategory" id="budgetPlanFormCategory" required>
+                                        <option selected>Choose...</option>
+                                        <?php for ($c = 0; $c < count($category_items); $c++) { ?>
+                                            <?php echo '<option value="' . $category_items[$c]['id'] . '">' . $category_items[$c]['name'] . '</option>' ?>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="input-group">
+                                    <div class="input-group-text">Description</div>
+                                    <input type="text" class="form-control" id="budgetPlanFormDesc" required autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="input-group">
+                                    <div class="input-group-text">Amount</div>
+                                    <input type="number" class="form-control" id="budgetPlanFormAmt" required autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3 justify-content-center">
+                            <div class="d-grid col-lg-6">
+                                <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('Y-m-d') ?>" data-bs-month="<?php echo date('F') ?>" data-bs-year="<?php echo date('Y') ?>">Submit</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <form class="needs-validation" id="budgetPlanForm" action="" method="post" novalidate>
-                    <div class="row">
-                        <div class="col-lg-2">
-                            <div class="input-group">
-                                <div class="input-group-text" for="budgetPlanFormType">Type</div>
-                                <select class="form-select form-control" name="budgetPlanFormType" id="budgetPlanFormType" required id="budgetPlanFormType" onchange="location.href='?type=' + this.options[this.selectedIndex].value">
-                                    <option <?php if (isset($budgetPlanType) && $budgetPlanType == 'expenses') {
-                                                echo 'selected';
-                                            } ?> value="expenses">Expenses</option>
-                                    <option <?php if (isset($budgetPlanType) && $budgetPlanType == 'income') {
-                                                echo 'selected';
-                                            } ?> value="income">Income</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="input-group">
-                                <div class="input-group-text" for="budgetPlanFormCategory">Category</div>
-                                <select class="form-select form-control" name="budgetPlanFormCategory" id="budgetPlanFormCategory" required>
-                                    <option selected>Choose...</option>
-                                    <?php for ($c = 0; $c < count($category_items); $c++) { ?>
-                                        <?php echo '<option value="' . $category_items[$c]['id'] . '">' . $category_items[$c]['name'] . '</option>' ?>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-lg-3">
-                            <div class="input-group">
-                                <div class="input-group-text">Description</div>
-                                <input type="text" class="form-control" id="budgetPlanFormDesc" required autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="col-lg-3">
-                            <div class="input-group">
-                                <div class="input-group-text">Amount</div>
-                                <input type="number" class="form-control" id="budgetPlanFormAmt" required autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-3 justify-content-center">
-                        <div class="d-grid col-lg-6">
-                            <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('Y-m-d') ?>" data-bs-month="<?php echo date('F') ?>" data-bs-year="<?php echo date('Y') ?>">Submit</button>
-                        </div>
-                    </div>
-                </form>
             </div>
             <!-- BUDGET PLANNER FORM ENDS HERE -->
             <!-- BUDGET INCOME TABULAR STARTS HERE -->
@@ -266,14 +257,14 @@ require_once(ROOT_PATH . '/pages/includes/footer.html');
     $(document).ready(function() {
         var expensesList = [];
         var barColors = [];
-        var category_object = <?php echo json_encode($budget_expense_items);?>;
+        var category_object = <?php echo json_encode($budget_expense_items); ?>;
         $.map(category_object, function(item) {
-            const randomColor = Math.floor(Math.random()*16777215).toString(16);
+            const randomColor = Math.floor(Math.random() * 16777215).toString(16);
             expensesList.push(item['name']);
             barColors.push('#' + randomColor);
         });
         // console.log(expensesList);
-        var expenseAmount = <?php echo json_encode($expenseAmounts);?>;
+        var expenseAmount = <?php echo json_encode($expenseAmounts); ?>;
         var xValues = expensesList;
         var yValues = expenseAmount;
 
@@ -286,7 +277,9 @@ require_once(ROOT_PATH . '/pages/includes/footer.html');
                     backgroundColor: barColors,
                 }],
                 options: {
-                    legend: { display:false },
+                    legend: {
+                        display: false
+                    },
                     title: {
                         display: true,
                         text: "Expenses Chart",
