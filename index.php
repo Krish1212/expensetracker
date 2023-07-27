@@ -1,25 +1,41 @@
 <?php
 
-$request = $_SERVER['REQUEST_URI'];
+class Router
+{
+    public function call($route, $file)
+    {
+        if(!empty($_REQUEST['uri']))
+        {
+            $route = preg_replace("/(^\/)|(\/$)/","",$route);
+            $reqUri =  preg_replace("/(^\/)|(\/$)/","",$_REQUEST['uri']);
+        }
+        else
+        {
+            $reqUri = "/";
+        }
 
-switch ($request) {
-    case '/':
-        require __DIR__ . '/pages/dashboard.php';
-        break;
-    case '/budget':
-    case '/budget?type=income':
-    case '/budget?type=expenses':
-        require __DIR__ . '/pages/budget.php';
-        break;
-    case '/transactions' :
-        require __DIR__ . '/pages/transactions.php';
-        break;
-    case '/reports' :
-        require __DIR__ . '/pages/reports.php';
-        break;
-    default:
-        http_response_code(404);
-        require __DIR__ . '/pages/404.php';
-        break;
+        if($reqUri == $route )
+        {
+            //on match include the file.
+            include(__DIR__ . "/pages/" . $file);
+            //exit because route address matched.
+            exit();
+        }
+    }
+    public function pageNotFound()
+    {
+        //on match include the file.
+        include(__DIR__ . "/pages/404.php");
+        //exit because route address matched.
+        exit();
+    }
 }
+
+$router = new Router();
+$router->call('/', 'dashboard.php');
+$router->call('/budget', 'budget.php');
+$router->call('/transactions', 'transactions.php');
+$router->call('/reports', 'reports.php');
+$router->pageNotFound();
+
 ?>

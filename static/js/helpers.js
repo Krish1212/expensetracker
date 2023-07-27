@@ -1,5 +1,6 @@
 $(document).ready(function() {
     var request;
+
     // navigator function
     $('#navtransactions').click(function() {
         window.location.assign('./transactions');
