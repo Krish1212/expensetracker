@@ -1,7 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Lato&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap');
 
 body {
-    font-family: 'Lato', sans-serif;
+    /* font-family: 'Lato', sans-serif; */
+    font-family: 'Roboto Slab', serif;
 }
 
 .budget-form {
@@ -11,4 +13,23 @@ body {
     border-width: 1px;
     border-top-left-radius: 0.25rem;
     border-top-right-radius: 0.25rem;
+}
+
+.budget-form > input {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    line-height: 1 !important;
+}
+
+.budget-form > td {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.budgetFormTable {
+    overflow-y: auto !important;
+    height: 400px !important;
 }

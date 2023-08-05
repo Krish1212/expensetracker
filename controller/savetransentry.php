@@ -6,8 +6,8 @@ $dbHandler = new DatabaseHandler();
 
 $data = $_POST['entryValues'];
 
-$result = $dbHandler->insertData('budget_planner', $data);
-print_r($result);
+$result = $dbHandler->insertData('transactions', $data);
+
 if ($result == 1)
 {
     echo 'Data inserted successfully';

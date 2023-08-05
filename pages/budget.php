@@ -94,37 +94,64 @@ $dbHandler->closeDB();
             </header>
             <!-- BUDGET PLANNER FORM COMES HERE -->
             <div class="budget-form bg-warning mb-4" style="--bs-bg-opacity:0.75;">
-                <div class="row align-items-center justify-content-center mb-3">
-                    <div class="col-lg-2 align-text-left">
-                        <div class="input-group mb-3">
-                            <label class="input-group-text" for="selectYear">Year</label>
-                            <select class="form-select form-select-sm" id="selectYear" onchange="location.href = '/budget/' + this.options[this.selectedIndex].text + '/<?php echo $currentMonth; ?>'">
-                                <?php for ($i = 1; $i <= count($yearsList); $i++) { ?>
-                                    <option <?php if ($currentYear == $yearsList[$i - 1]) echo 'selected' ?> value="<?php echo $i ?>"><?php echo $yearsList[$i - 1] ?></option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-2">
-                        <div class="input-group mb-3">
-                            <label class="input-group-text" for="selectMonth">Month</label>
-                            <select class="form-select form-select-sm" id="selectMonth" onchange="location.href = '/budget/<?php echo $currentYear; ?>/' + this.options[this.selectedIndex].text">
-                                <?php for ($i = 1; $i <= count($monthsList); $i++) { ?>
-                                    <option <?php if ($currentMonth == $monthsList[$i - 1]) echo 'selected' ?> value="<?php echo $i ?>"><?php echo $monthsList[$i - 1] ?></option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                    </div>
+                <div class="row">
                     <div class="col-lg-3">
                         <h5>Date: <?php echo date('d-m-Y') ?></h5>
                     </div>
-
                     <form class="needs-validation" id="budgetPlanForm" action="" method="post" novalidate>
-                        <div class="row">
+                        <div class="btn-group mb-3 col-lg-4" role="group" id="typeSelector">
+                            <input type="radio" class="btn-check" name="budgetPlanFormType" id="budgetPlanFormType1" autocomplete="off" value="income" <?php if ($budgetPlanType == 'income') echo "checked"?>>
+                            <label class="btn btn-outline-secondary" for="budgetPlanFormType1">Income</label>
+                            <input type="radio" class="btn-check" name="budgetPlanFormType" id="budgetPlanFormType2" autocomplete="off" value="expenses" <?php if ($budgetPlanType == 'expenses') echo "checked"?>>
+                            <label class="btn btn-outline-secondary" for="budgetPlanFormType2">Expenses</label>
+                        </div>
+                        <div class="table-responsive budgetFormTable">
+                            <table class="table table-bordered table-condensed" cellpadding=0 cellspacing=0>
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php for ($x = 0; $x < count($category_items); $x++) { ?>
+                                        <tr>
+                                            <td>
+                                                <select class="form-select form-control" name="budgetPlanFormCategory" id="budgetPlanFormCategory" required>
+                                                    <option selected>Choose...</option>
+                                                    <?php for ($c = 0; $c < count($category_items); $c++) { ?>
+                                                        <?php echo '<option value="' . $category_items[$c]['id'] . '">' . $category_items[$c]['name'] . '</option>' ?>
+                                                    <?php } ?>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control" id="budgetPlanFormDesc" required autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control" id="budgetPlanFormAmt" required autocomplete="off">
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                                <tfoot>
+                                    <td colspan="4">
+                                        <div class="mt-3">
+                                            <div class="text-center">
+                                                <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('Y-m-d'); ?>" data-bs-month="<?php echo $currentMonth; ?>" data-bs-year="<?php echo $currentYear; ?>">Submit</button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </form>
+                    <!-- <form class="needs-validation" id="budgetPlanForm" action="" method="post" novalidate>
+                        <div class="row align-items-center justify-content-center mt-3">
                             <div class="col-lg-2">
                                 <div class="input-group">
                                     <div class="input-group-text" for="budgetPlanFormType">Type</div>
-                                    <select class="form-select form-control" name="budgetPlanFormType" id="budgetPlanFormType" required id="budgetPlanFormType" onchange="location.href = '/budget/<?php echo $currentYear; ?>/<?php echo $currentMonth; ?>/' + this.options[this.selectedIndex].value">
+                                    <select class="form-select form-control" name="budgetPlanFormType" id="budgetPlanFormType" required id="budgetPlanFormType" onchange="location.href = '/budget/' + this.options[this.selectedIndex].value">
                                         <option <?php if (isset($budgetPlanType) && $budgetPlanType == 'expenses') {
                                                     echo 'selected';
                                                 } ?> value="expenses">Expenses</option>
@@ -160,16 +187,38 @@ $dbHandler->closeDB();
                         </div>
                         <div class="row mt-3 justify-content-center">
                             <div class="d-grid col-lg-6">
-                                <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('Y-m-d') ?>" data-bs-month="<?php echo date('F') ?>" data-bs-year="<?php echo date('Y') ?>">Submit</button>
+                                <button type="submit" class="btn btn-outline-secondary" id="budgetPlanFormSubmit" data-bs-date="<?php echo date('Y-m-d'); ?>" data-bs-month="<?php echo $currentMonth; ?>" data-bs-year="<?php echo $currentYear; ?>">Submit</button>
                             </div>
                         </div>
-                    </form>
+                    </form> -->
                 </div>
             </div>
             <!-- BUDGET PLANNER FORM ENDS HERE -->
             <!-- BUDGET INCOME TABULAR STARTS HERE -->
             <?php if (is_array($budget_income_items)) : ?>
                 <div class="container p-3 mb-3 opacity-75">
+                    <div class="row">
+                        <div class="col-lg-2 align-text-left">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="selectYear">Year</label>
+                                <select class="form-select form-select-sm" id="selectYear" onchange="location.href = '/budget/' + this.options[this.selectedIndex].text + '/<?php echo $currentMonth; ?>'">
+                                    <?php for ($i = 1; $i <= count($yearsList); $i++) { ?>
+                                        <option <?php if ($currentYear == $yearsList[$i - 1]) echo 'selected' ?> value="<?php echo $i ?>"><?php echo $yearsList[$i - 1] ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="selectMonth">Month</label>
+                                <select class="form-select form-select-sm" id="selectMonth" onchange="location.href = '/budget/<?php echo $currentYear; ?>/' + this.options[this.selectedIndex].text">
+                                    <?php for ($i = 1; $i <= count($monthsList); $i++) { ?>
+                                        <option <?php if ($currentMonth == $monthsList[$i - 1]) echo 'selected' ?> value="<?php echo $i ?>"><?php echo $monthsList[$i - 1] ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-lg-6 shadow rounded p-2 table-responsive">
                             <table class="table table-bordered table-sm caption-top">

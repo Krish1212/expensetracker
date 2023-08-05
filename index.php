@@ -130,9 +130,11 @@ class Router
 $router = new Router();
 $router->call('/', 'dashboard.php');
 $router->call('/budget', 'budget.php');
+$router->call('/budget/{type}', 'budget.php');
 $router->call('/budget/{year}/{month}', 'budget.php');
 $router->call('/budget/{year}/{month}/{type}', 'budget.php');
 $router->call('/transactions', 'transactions.php');
+$router->call('/transactions/{year}/{month}', 'transactions.php');
 $router->call('/reports', 'reports.php');
 $router->pageNotFound();
 
