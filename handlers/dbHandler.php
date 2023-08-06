@@ -4,7 +4,7 @@ class DatabaseHandler {
     private $host = 'localhost';
     private $dbname = 'expense_tracker';
     private $username = 'root';
-    private $password = 'rN)r/zCD1v-V[iGk';
+    private $password = 'mysql@123';
 
     public function __construct() {
         $this->conn = mysqli_connect($this->host, $this->username, $this->password, $this->dbname);

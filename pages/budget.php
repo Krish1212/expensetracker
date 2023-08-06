@@ -6,11 +6,11 @@ include ROOT_PATH . '/handlers/dbHandler.php';
 $dbHandler = new DatabaseHandler();
 
 //get the value of the selected year
-$budgetPlanYear = $params['year'];
+$budgetPlanYear = (isset($params['year'])) ? $params['year'] : date("Y");
 // get the value of the selected month
-$budgetPlanMonth = $params['month'];
+$budgetPlanMonth = (isset($params['month'])) ? $params['month'] : date("F");
 // get the value of the selected type
-$budgetPlanType = $params['type'];
+$budgetPlanType = (isset($params['type'])) ? $params['type'] : 'income';
 
 $monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 $yearsList = ["2021", "2022", "2023"];
@@ -35,9 +35,12 @@ foreach ($dataSetRows as $item) {
         $category_expenses[] = $expenseItem;
     }
 }
-if (isset($budgetPlanType) && $budgetPlanType == 'income') {
+if (isset($budgetPlanType) && $budgetPlanType == 'income')
+{
     $category_items = $category_income;
-} else {
+}
+else
+{
     $category_items = $category_expenses;
 }
 
@@ -47,6 +50,7 @@ if (isset($budgetPlanType) && $budgetPlanType == 'income') {
 $matchColumns = array('month' => date("F"));
 $currentYear = (isset($budgetPlanYear)) ? $budgetPlanYear : date("Y");
 $currentMonth = (isset($budgetPlanMonth)) ? $budgetPlanMonth : date("F");
+
 $combinedQuery = "SELECT category_table.name, category_table.type, description, amount FROM budget_planner INNER JOIN category_table ON budget_planner.category=category_table.id WHERE budget_planner.month=\"" . $currentMonth . "\" AND budget_planner.year=\"" . $currentYear . "\";";
 $resultDataSet = $dbHandler->query($combinedQuery);
 $budget_income_items = array();
@@ -108,31 +112,29 @@ $dbHandler->closeDB();
                         <div class="table-responsive budgetFormTable">
                             <table class="table table-bordered table-condensed" cellpadding=0 cellspacing=0>
                                 <thead>
-                                    <tr>
+                                    <tr align="center">
                                         <th>Category</th>
                                         <th>Description</th>
                                         <th>Amount</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php for ($x = 0; $x < count($category_items); $x++) { ?>
-                                        <tr>
-                                            <td>
-                                                <select class="form-select form-control" name="budgetPlanFormCategory" id="budgetPlanFormCategory" required>
-                                                    <option selected>Choose...</option>
-                                                    <?php for ($c = 0; $c < count($category_items); $c++) { ?>
-                                                        <?php echo '<option value="' . $category_items[$c]['id'] . '">' . $category_items[$c]['name'] . '</option>' ?>
-                                                    <?php } ?>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="text" class="form-control" id="budgetPlanFormDesc" required autocomplete="off">
-                                            </td>
-                                            <td>
-                                                <input type="number" class="form-control" id="budgetPlanFormAmt" required autocomplete="off">
-                                            </td>
-                                        </tr>
-                                    <?php } ?>
+                                    <tr align="center">
+                                        <td>
+                                            <select class="form-select form-control" name="budgetPlanFormCategory" id="budgetPlanFormCategory" required>
+                                                <option selected>Choose...</option>
+                                                <?php for ($c = 0; $c < count($category_items); $c++) { ?>
+                                                    <?php echo '<option value="' . $category_items[$c]['id'] . '">' . $category_items[$c]['name'] . '</option>' ?>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" id="budgetPlanFormDesc" name="budgetItemDesc" autocomplete="off">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control" id="budgetPlanFormAmt" name="budgetItemAmt" required autocomplete="off">
+                                        </td>
+                                    </tr>
                                 </tbody>
                                 <tfoot>
                                     <td colspan="4">

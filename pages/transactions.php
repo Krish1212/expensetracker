@@ -6,9 +6,11 @@ include ROOT_PATH . '/handlers/dbHandler.php';
 $dbHandler = new DatabaseHandler();
 
 //get the value of the selected year
-$transYear = $params['year'];
+$transYear = (isset($params['year'])) ? $params['year'] : date("Y");
 // get the value of the selected month
-$transMonth = $params['month'];
+$transMonth = (isset($params['month'])) ? $params['month'] : date("F");
+//initiate the total income
+$incomeTotal = 0;
 
 $monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 $yearsList = ["2021", "2022", "2023"];
@@ -28,7 +30,6 @@ foreach ($dataSetRows as $item) {
         $category_expenses[] = $expenseItem;
     }
 }
-echo $incomeTotal;
 
 $category_items = $category_expenses;
 
@@ -38,10 +39,9 @@ $category_items = $category_expenses;
 $matchColumns = array('month' => date("F"));
 $currentYear = (isset($transYear)) ? $transYear : date("Y");
 $currentMonth = (isset($transMonth)) ? $transMonth : date("F");
-$combinedQuery = "SELECT category_table.name, details, amount FROM transactions INNER JOIN category_table ON transactions.category=category_table.id WHERE transactions.month=\"" . $currentMonth . "\" AND transactions.year=\"" . $currentYear . "\";";
+$combinedQuery = 'SELECT category_table.name as category, GROUP_CONCAT(details) as details, SUM(amount) as amount FROM transactions INNER JOIN category_table ON transactions.category=category_table.id WHERE transactions.month="' . $currentMonth . '" AND transactions.year="' . $currentYear . '" GROUP BY category;';
 $resultDataSet = $dbHandler->query($combinedQuery);
 $trans_expense_items = array();
-$incomeTotal = 0;
 while ($row = mysqli_fetch_assoc($resultDataSet)) {
     $trans_expense_items[] = $row;
     $expenseAmounts[] = $row['amount'];
@@ -62,6 +62,15 @@ function addNumberColumn($inputArray)
     return $totalValue;
 }
 $expensesTotal = addNumberColumn($trans_expense_items);
+
+// get the income total from the budget_planner table for current month, year having type=income alone
+$getIncomeQuery = 'SELECT SUM(amount) as incomeTotal FROM `budget_planner` WHERE month="' . $currentMonth . '" AND year="' . $currentYear . '" AND type="income"';
+$dataAmount = $dbHandler->query($getIncomeQuery);
+
+while($row = mysqli_fetch_assoc($dataAmount))
+{
+    $incomeTotal = $row['incomeTotal'];
+}
 
 $dbHandler->closeDB();
 
@@ -153,21 +162,19 @@ $dbHandler->closeDB();
                         </div>
                     </div>
                     <div class="col-lg-5 shadow rounded p-3">
-                        <div class="mh-100 text-bg-warning opacity-75 d-flex justify-content-between">
+                        <div class="mh-100 text-bg-warning opacity-75 xd-flex justify-content-between">
                             <h4 class="p-3">Total Expenses: <span>₹<?php echo $expensesTotal ?></span></h4>
                             <h4 class="p-3">Balance: <span>₹<?php echo ($incomeTotal - $expensesTotal) ?></span></h4>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- BUDGET INCOME TABULAR ENDS HERE -->
-            <!-- BUDGET EXPENSES TABULAR STARTS HERE -->
             <?php if (is_array($trans_expense_items) && count($trans_expense_items) > 0) : ?>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-hover caption-top">
                         <caption><strong>All Expense Transactions</strong></caption>
                         <thead>
-                            <tr>
+                            <tr align="center">
                                 <th scope="col">#</th>
                                 <th scope="col">Category</th>
                                 <th scope="col">Details</th>
@@ -176,9 +183,9 @@ $dbHandler->closeDB();
                         </thead>
                         <tbody class="table-group-divider">
                             <?php for ($i = 0; $i < count($trans_expense_items); $i++) { ?>
-                                <tr>
+                                <tr align="center">
                                     <th><?php echo ($i + 1); ?></th>
-                                    <td><?php echo $trans_expense_items[$i]['name']; ?></td>
+                                    <td><?php echo $trans_expense_items[$i]['category']; ?></td>
                                     <td><?php echo $trans_expense_items[$i]['details']; ?></td>
                                     <td>₹<?php echo $trans_expense_items[$i]['amount']; ?></td>
                                 </tr>
@@ -191,7 +198,7 @@ $dbHandler->closeDB();
                             </tr>
                         </tfoot>
                     </table>
-                    <!-- BUDGET EXPENSES TABULAR STARTS HERE -->
+                    <!-- TRANSACTION TABULAR ENDS HERE -->
                 </div>
             <?php else : ?>
                 <div class="fs-5 text-capitalize text-nowrap border text-md-center"><?php echo $trans_records; ?></div>
@@ -209,7 +216,7 @@ require_once(ROOT_PATH . '/pages/includes/footer.html');
         var category_object = <?php echo json_encode($trans_expense_items); ?>;
         $.map(category_object, function(item) {
             const randomColor = Math.floor(Math.random() * 16777215).toString(16);
-            expensesList.push(item['name']);
+            expensesList.push(item['category']);
             barColors.push('#' + randomColor);
         });
         // console.log(expensesList);

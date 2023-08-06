@@ -33,7 +33,7 @@ $(document).ready(function() {
         var month = $('#budgetPlanFormSubmit').attr('data-bs-month');
         var year = $('#budgetPlanFormSubmit').attr('data-bs-year');
         var category = $('#budgetPlanFormCategory option').filter(':selected').val();
-        var type = $('#budgetPlanFormType option').filter(':selected').val();
+        var type = $('#typeSelector input').filter(':checked').val();
         var description = $('#budgetPlanFormDesc').val();
         var amount = $('#budgetPlanFormAmt').val();
         /* alert('date: ' + date);
