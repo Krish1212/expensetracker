@@ -1,3 +1,27 @@
+Python API request and response
+import requests
+import json
+url = "https://ap-south-1.aws.data.mongodb-api.com/app/data-nvlwk/endpoint/data/v1/action/findOne"
+
+payload = json.dumps({
+    "collection": "transactions",
+    "database": "expenseData",
+    "dataSource": "Cluster0",
+    "projection": {
+        "_id": 1
+    }
+})
+headers = {
+  'Content-Type': 'application/json',
+  'Access-Control-Request-Headers': '*',
+  'api-key': 'YwOLe9dRPEQCUuNTpyygIVAEwl0RzZJKvaElgvfUjNuGFA4P8bj6cv0J1zj11ZxY',
+}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+
+print(response.text)
+
+=============================================================================
 Current status
 budget plan form validation (DONE)
 budget plan save data

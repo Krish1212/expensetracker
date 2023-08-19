@@ -136,6 +136,7 @@ $router->call('/budget/{year}/{month}/{type}', 'budget.php');
 $router->call('/transactions', 'transactions.php');
 $router->call('/transactions/{year}/{month}', 'transactions.php');
 $router->call('/reports', 'reports.php');
+$router->call('/test', 'test.php');
 $router->pageNotFound();
 
 ?>
